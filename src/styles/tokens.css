@@ -1,0 +1,15 @@
+:root {
+  --paper: #fafaf8;
+  --white: #ffffff;
+  --mist: #ffffff;
+  --ink: #171717;
+  --body: #666666;
+  --quiet: #666666;
+  --line: #e7e7e3;
+  --line-strong: #d7d7d2;
+  --accent: #454545;
+  --font-serif: "Instrument Serif", "Iowan Old Style", Georgia, serif;
+  --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --container: 1240px;
+  --gutter: clamp(1.3rem, 5vw, 4.7rem);
+}

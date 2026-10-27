@@ -1,0 +1,116 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import LanguageSwitcher from './LanguageSwitcher.jsx';
+import GalleryModal from './GalleryModal.jsx';
+import ProjectPresentations from './ProjectPresentations.jsx';
+import ContactForm from './ContactForm.jsx';
+import Icon from './Icon.jsx';
+import { sitePath } from '../utils/sitePath';
+import { translations } from '../i18n/translations';
+import { caseTranslations } from '../i18n/caseTranslations';
+import { creativeProjects } from '../data/portfolioData';
+import { campaignBriefing, caseStudies } from '../data/caseStudies';
+import { photographyAssets } from '../data/photographyData';
+
+interface Props { lang: 'pt' | 'en' }
+const { lang } = Astro.props;
+const t = { ...translations[lang], ...caseTranslations[lang] };
+const casePresentations = caseStudies.map((cs) => ({
+  id: cs.id,
+  kind: 'case-study',
+  title: cs.title[lang],
+  category: cs.category[lang],
+  summary: cs.description[lang],
+  previewMetrics: cs.featuredMetrics.slice(0, 3).map((metric) => ({ label: metric.label[lang], value: metric.value[lang] })),
+  slides: [
+    { title: t.caseOverview, body: cs.overview[lang], metrics: cs.featuredMetrics.slice(0, 4).map((metric) => ({ ...metric, label: metric.label[lang], value: metric.value[lang], note: metric.note?.[lang] ?? null, sourceLabel: metric.source === 'reported' ? t.sourceReported : t.sourceCalculated })) },
+    { title: t.campaignBriefingTitle, body: campaignBriefing[lang] },
+    { title: t.caseObjectivesTitle, list: cs.objectives.map((objective) => objective[lang]) },
+    { title: t.caseExecutionTitle, fields: [{ label: t.caseStrategy, value: cs.strategy[lang] }, { label: t.caseExecution, value: cs.execution[lang] }] },
+    ...(cs.featuredMetrics.length > 4 ? [{ title: t.casePerformanceTitle, metrics: cs.featuredMetrics.slice(4).map((metric) => ({ ...metric, label: metric.label[lang], value: metric.value[lang], note: metric.note?.[lang] ?? null, sourceLabel: metric.source === 'reported' ? t.sourceReported : t.sourceCalculated })) }] : []),
+    { title: t.caseResultsTitle, body: cs.results[lang], campaignRows: cs.campaignRows?.map((row) => ({ id: row.id, name: row.name[lang], result: row.result[lang], costPerResult: row.costPerResult[lang], spend: row.spend[lang] })), evidence: cs.evidence?.map((asset) => ({ ...asset, alt: asset.alt[lang], caption: asset.caption[lang] })) }
+  ]
+}));
+const photographyPresentation = [{
+  id: 'portrait-studies', kind: 'photography', title: t.photographyTitle, category: t.photographyCategory,
+  summary: t.photographyDescription, coverImage: '/images/portfolio/capa-portraits.png', coverFit: 'contain', openLabel: t.photographyOpen, progressTotal: photographyAssets.length,
+  slides: [
+    { type: 'photography-intro', title: t.photographyTitle, body: t.photographySlideIntro, startLabel: t.photographySlideStart, image: { url: '/images/portfolio/capa-portraits.png', alt: t.photographyCoverAlt, width: 1122, height: 1402, caption: '' }, progressNumber: 0, progressTotal: photographyAssets.length },
+    ...photographyAssets.map((photo, index) => ({ type: 'photography-photo', title: t.photographyCategory, image: { url: photo.src, alt: photo.alt[lang], width: photo.width, height: photo.height, caption: '' }, progressNumber: index + 1, progressTotal: photographyAssets.length }))
+  ]
+}];
+---
+
+<BaseLayout title={t.metaTitle} description={t.metaDescription} lang={lang}>
+  <header class="site-header" id="site-header">
+    <div class="container header-inner">
+      <a href="#home" class="brand" aria-label={lang === 'en' ? 'Débora — home' : 'Débora — início'}><img src={sitePath('/images/portfolio/logo-mkt.webp')} alt="Débora" width="72" height="72" /></a>
+      <nav class="desktop-nav" aria-label={lang === 'en' ? 'Main navigation' : 'Navegação principal'}>
+        <a class="nav-link" href="#method">{t.navMethod}</a><a class="nav-link" href="#paid-media">{t.navPaidMedia}</a><a class="nav-link" href="#studio">{t.navStudio}</a><a class="nav-link" href="#cases">{t.navCases}</a><a class="nav-link" href="#photography">{t.navPhotography}</a><a class="nav-link" href="#about">{t.navAbout}</a><a class="nav-link" href="#contact">{t.navContact}</a>
+      </nav>
+      <LanguageSwitcher currentLang={lang} />
+    </div>
+  </header>
+
+  <main>
+    <section id="home" class="hero">
+      <div class="container hero-grid">
+        <div class="hero-copy">
+          <p class="hero-kicker"><span class="kicker-rule" aria-hidden="true"></span><span class="hero-kicker-label">{t.heroGreeting}</span></p>
+          <h1 class="hero-name">{t.heroName}</h1>
+          <p class="hero-sub">{t.heroSubtitle}</p>
+          <div class="hero-ctas"><a href="#studio" class="cta-solid">{t.heroCtaWork}<Icon name="arrow" /></a><a href="#contact" class="cta-line">{t.heroCtaContact}</a></div>
+          <a class="development-link" href="https://debbsouz.github.io/portf-lio/" target="_blank" rel="noopener noreferrer">{t.developmentPortfolio}<Icon name="external" /></a>
+        </div>
+        <figure class="hero-portrait"><img src={sitePath('/images/portfolio/debora-profile.webp')} alt={t.heroPhotoAlt} fetchpriority="high" decoding="async" width="900" height="1117" /><figcaption><span>01 / 06</span>{t.heroName}</figcaption></figure>
+      </div>
+    </section>
+
+    <section id="method" class="section approach-section">
+      <div class="container">
+        <div class="section-head"><span class="section-index">01</span><div><h2 class="section-title">{t.methodTitle}</h2><p class="section-lead">{t.methodLead}</p></div></div>
+        <div class="approach-layout">
+          <figure class="approach-photo"><img src={sitePath('/images/portfolio/debora-about.webp')} alt={t.processPhotoAlt} loading="lazy" decoding="async" width="900" height="600" /><figcaption><span>05 / 06</span>{t.methodTitle}</figcaption></figure>
+          <ol class="approach-steps">{t.steps.map(([title, desc], i) => <li class="approach-step"><span class="approach-number">{String(i + 1).padStart(2, '0')}</span><div><h3>{title}</h3><p>{desc}</p></div></li>)}</ol>
+        </div>
+      </div>
+    </section>
+
+    <section id="paid-media" class="section paid-media-section">
+      <div class="container">
+        <div class="section-head"><span class="section-index">02</span><div><h2 class="section-title">{t.paidTitle}</h2><p class="section-lead">{t.paidLead}</p></div></div>
+        <div class="performance-intro">
+          <div class="performance-copy"><span class="eyebrow">{t.performanceEyebrow}</span><h3>{t.performanceTitle}</h3><p>{t.performanceNote}</p><a class="case-link" href="#cases">{t.performanceAction}<Icon name="arrow" /></a></div>
+          <figure class="performance-photo"><img src={sitePath('/images/portfolio/debora-portrait-04.webp')} alt={t.editorialPhotoAlt} loading="lazy" decoding="async" width="480" height="600" /><figcaption>{t.editorialTitle}</figcaption></figure>
+        </div>
+      </div>
+    </section>
+
+    <section id="studio" class="section studio-section">
+      <div class="container"><div class="section-head"><span class="section-index">03</span><div><h2 class="section-title">{t.studioTitle}</h2><p class="section-lead">{t.studioLead}</p></div></div><GalleryModal client:load projects={creativeProjects} t={t} lang={lang} /></div>
+    </section>
+
+    <section id="cases" class="section case-section">
+      <div class="container"><div class="section-head"><span class="section-index">04</span><div><span class="eyebrow case-section-eyebrow">{t.casesEyebrow}</span><h2 class="section-title">{t.casesHeadline}</h2><p class="section-lead">{t.casesIntro}</p></div></div><ProjectPresentations client:load className="case-presentation-grid" projects={casePresentations} t={t} lang={lang} /></div>
+    </section>
+
+    <section id="photography" class="section photography-section">
+      <div class="container"><div class="section-head"><span class="section-index">05</span><div><h2 class="section-title">{t.photographyTitle}</h2><p class="section-lead">{t.photographyLead}</p></div></div><ProjectPresentations client:load projects={photographyPresentation} t={t} lang={lang} /></div>
+    </section>
+
+    <section id="about" class="section about-section">
+      <div class="container"><div class="section-head"><span class="section-index">06</span><div><h2 class="section-title">{t.aboutTitle}</h2><p class="section-lead">{t.aboutLead}</p></div></div>
+        <div class="about-composition"><figure class="about-portrait"><img src={sitePath('/images/portfolio/debora-portrait-02.webp')} alt={t.aboutPortraitAlt02} loading="lazy" decoding="async" width="480" height="600" /><figcaption>02 / 06</figcaption></figure><div class="about-copy"><p class="about-kicker">{t.heroGreeting}</p><p class="about-bio">{t.aboutBio1}</p><div class="about-focus-copy"><h3>{t.aboutFocusTitle}</h3><ul class="skills-line">{t.skills.map((skill, i) => <li><span>{String(i + 1).padStart(2, '0')}</span>{skill}</li>)}</ul></div><nav class="social-links" aria-label={t.professionalLinks}><a href="https://linkedin.com/in/deborasouzap" target="_blank" rel="noopener noreferrer"><Icon name="linkedin" />{t.linkedinLabel}<Icon name="external" /></a><a href="https://github.com/debbsouz" target="_blank" rel="noopener noreferrer"><Icon name="github" />{t.githubLabel}<Icon name="external" /></a><a href="https://www.instagram.com/bydebbiep/" target="_blank" rel="noopener noreferrer"><Icon name="instagram" />{t.instagramLabel}<Icon name="external" /></a><a href="https://debbsouz.github.io/portf-lio/" target="_blank" rel="noopener noreferrer">{t.developmentPortfolio}<Icon name="external" /></a></nav></div></div>
+      </div>
+    </section>
+
+    <section id="contact" class="section contact-section">
+      <div class="container"><div class="section-head"><span class="section-index">07</span><div><h2 class="section-title">{t.navContact}</h2><p class="section-lead">{t.contactLead}</p></div></div>
+        <div class="contact-grid"><div class="contact-invitation"><span class="eyebrow">Digital Marketing & Paid Media</span><h3>{t.contactTitle}</h3><p>{t.contactLead}</p><a class="contact-email" href="mailto:deborasouza.p@outlook.com"><Icon name="mail" />deborasouza.p@outlook.com</a><nav class="social-links" aria-label={t.professionalLinks}><a href="https://linkedin.com/in/deborasouzap" target="_blank" rel="noopener noreferrer"><Icon name="linkedin" />{t.linkedinLabel}<Icon name="external" /></a><a href="https://github.com/debbsouz" target="_blank" rel="noopener noreferrer"><Icon name="github" />{t.githubLabel}<Icon name="external" /></a><a href="https://www.instagram.com/bydebbiep/" target="_blank" rel="noopener noreferrer"><Icon name="instagram" />{t.instagramLabel}<Icon name="external" /></a></nav></div><div class="contact-form-card" id="contact-form"><ContactForm client:load t={t} /></div></div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer"><div class="container footer-inner"><img class="footer-signature" src={sitePath('/images/portfolio/logo-mkt.webp')} alt="" width="240" height="240" loading="lazy" /><div><span class="footer-brand">Débora</span><p class="footer-note">{t.footerTagline}</p><a class="footer-development" href="https://debbsouz.github.io/portf-lio/" target="_blank" rel="noopener noreferrer">{t.developmentPortfolio}<Icon name="external" /></a></div><p class="footer-note">© {new Date().getFullYear()} Débora. {t.footerRights}</p></div></footer>
+  <script>const header = document.getElementById('site-header'); const onScroll = () => header?.classList.toggle('is-scrolled', window.scrollY > 24); onScroll(); window.addEventListener('scroll', onScroll, { passive: true });</script>
+</BaseLayout>

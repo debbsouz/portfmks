@@ -1,0 +1,63 @@
+---
+import type { PerformanceCampaign } from '../data/portfolioData';
+
+interface Props {
+  campaigns: PerformanceCampaign[];
+  lang: 'pt' | 'en';
+  t: Record<string, any>;
+}
+
+const { campaigns, lang, t } = Astro.props;
+const locale = lang === 'pt' ? 'pt-BR' : 'en-US';
+const formatDate = (value: string) => {
+  const date = new Date(`${value}T12:00:00Z`);
+  return Number.isNaN(date.valueOf()) ? value : new Intl.DateTimeFormat(locale, { month: 'short', year: 'numeric', timeZone: 'UTC' }).format(date);
+};
+const numberFormat = new Intl.NumberFormat(locale, { maximumFractionDigits: 2 });
+const chartPoints = (values: number[]) => {
+  const min = Math.min(0, ...values);
+  const max = Math.max(0, ...values);
+  const range = max - min || 1;
+  return values.map((value, index) => {
+    const x = values.length < 2 ? 44 : 44 + (index * 532) / (values.length - 1);
+    const y = 24 + ((max - value) * 150) / range;
+    return `${x},${y}`;
+  }).join(' ');
+};
+---
+
+{campaigns.length > 0 && <div class="campaign-reports">
+  {campaigns.map((campaign) => <article class="campaign-report" id={`campaign-${campaign.id}`}>
+    <header class="campaign-report-head">
+      <div><span class="eyebrow">{campaign.client}</span><h3>{campaign.objective[lang]}</h3><p>{campaign.summary[lang]}</p></div>
+      {campaign.caseStudyId && <a class="campaign-case-link" href={`#${campaign.caseStudyId}`}>{t.performanceCaseLink}<span aria-hidden="true">↗</span></a>}
+    </header>
+
+    <dl class="campaign-context">
+      <div><dt>{t.campaignObjectiveLabel}</dt><dd>{campaign.objective[lang]}</dd></div>
+      {campaign.period && <div><dt>{t.campaignPeriodLabel}</dt><dd>{formatDate(campaign.period.start)} {t.campaignDateSeparator} {formatDate(campaign.period.end)}</dd></div>}
+      {campaign.currency && <div><dt>{t.campaignCurrencyLabel}</dt><dd>{campaign.currency}</dd></div>}
+      {campaign.attribution && <div><dt>{t.campaignAttributionLabel}</dt><dd>{campaign.attribution[lang]}</dd></div>}
+    </dl>
+
+    {campaign.metrics.length > 0 && <dl class="campaign-metrics">{campaign.metrics.map((metric) => <div>
+      <dt>{metric.label[lang]}</dt><dd>{metric.displayValue ?? numberFormat.format(metric.value)}</dd><small>{metric.definition[lang]}</small>
+    </div>)}</dl>}
+
+    {campaign.charts.filter((chart) => chart.values.length > 1 && chart.values.length === chart.labels.length).map((chart) => <figure class="campaign-chart">
+      <figcaption>{chart.title[lang]}</figcaption>
+      <svg viewBox="0 0 620 220" role="img" aria-label={`${t.campaignChartLabel}: ${chart.title[lang]}`}>
+        <line x1="44" y1="24" x2="44" y2="180" />
+        <line x1="44" y1="180" x2="588" y2="180" />
+        <polyline points={chartPoints(chart.values)} />
+        {chart.values.map((value, index) => {
+          const [cx, cy] = chartPoints(chart.values).split(' ')[index].split(',');
+          return <circle cx={cx} cy={cy} r="4"><title>{chart.labels[index]}: {numberFormat.format(value)}{chart.unit ?? ''}</title></circle>;
+        })}
+      </svg>
+      <dl class="campaign-chart-values">{chart.labels.map((label, index) => <div><dt>{label}</dt><dd>{numberFormat.format(chart.values[index])}{chart.unit ?? ''}</dd></div>)}</dl>
+    </figure>)}
+
+    {campaign.screenshots.length > 0 && <section class="campaign-evidence"><h4>{t.campaignEvidenceLabel}</h4><div>{campaign.screenshots.map((shot) => <figure><img src={shot.url} alt={shot.alt[lang]} loading="lazy" decoding="async" /><figcaption>{shot.alt[lang]}</figcaption></figure>)}</div></section>}
+  </article>)}
+</div>}
